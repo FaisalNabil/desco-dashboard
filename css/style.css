@@ -161,3 +161,7 @@ footer {
 .navbar-brand img {
   max-height: 32px;
 }
+
+#recentAccounts {
+  display: block;
+}

@@ -4,15 +4,28 @@ $(document).ready(function () {
     const accountNo = localStorage.getItem('accountNo');
   
     $('#loginForm').submit(function (e) {
-      e.preventDefault();
-      const input = $('#accountNo').val().trim();
-      if (input) {
-        localStorage.setItem('accountNo', input);
-        window.location.href = 'dashboard.html';
-      } else {
-        alert('Please enter your Account No or Meter No');
-      }
-    });
+        e.preventDefault();
+        const input = $('#accountNo').val().trim();
+        if (!input) return alert('Please enter your Account No or Meter No');
+      
+        $.get(`https://prepaid.desco.org.bd/api/tkdes/customer/getCustomerInfo?accountNo=${input}`)
+          .done(res => {
+            if (res.code === 200 && res.data) {
+              // ✅ Save to recentAccounts
+              saveRecentAccount(res.data.accountNo, res.data.customerName);
+      
+              // ✅ Save current account
+              localStorage.setItem('accountNo', res.data.accountNo);
+      
+              // ✅ Redirect
+              window.location.href = 'dashboard.html';
+            } else {
+              alert('Account not found.');
+            }
+          })
+          .fail(() => alert('API error. Please try again.'));
+      });      
+      
   
     $('#logoutBtn').click(function () {
       localStorage.removeItem('accountNo');
@@ -26,7 +39,41 @@ $(document).ready(function () {
         loadInitialData(accountNo);
       }
     }
+    if (window.location.pathname.includes('index.html')) {
+        renderRecentAccounts();
+      }
+      
   });
+  
+  function saveRecentAccount(accountNo, customerName) {
+    const key = 'recentAccounts';
+    let list = JSON.parse(localStorage.getItem(key)) || [];
+    list = list.filter(a => a.accountNo !== accountNo); // remove duplicates
+    list.unshift({ accountNo, customerName });
+    localStorage.setItem(key, JSON.stringify(list.slice(0, 5))); // max 5
+  }
+  
+  function renderRecentAccounts() {
+    const list = JSON.parse(localStorage.getItem('recentAccounts')) || [];
+    if (list.length === 0) return;
+  
+    const container = $('#recentAccounts');
+    container.html('<label class="form-label fw-semibold">Recent Logins</label><div class="d-grid gap-2"></div>');
+    const grid = container.find('.d-grid');
+    list.forEach(acc => {
+      grid.append(`
+        <button type="button" class="btn btn-outline-secondary btn-sm text-start recent-btn" data-account="${acc.accountNo}">
+          <strong>${acc.customerName}</strong><br><small>${acc.accountNo}</small>
+        </button>
+      `);
+    });
+  
+    // Click handler for recent buttons
+    container.on('click', '.recent-btn', function () {
+      const acc = $(this).data('account');
+      $('#accountNo').val(acc).focus();
+    });
+  }
   
   function loadInitialData(accountNo) {
     // Show loader
