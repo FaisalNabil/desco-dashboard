@@ -31,6 +31,18 @@ function renderComparison({ monthlyCur, monthlyPrev, chartOptions = {} }) {
     `;
   
     const labels = monthlyCur.map((m, i) => `${m.month} / ${monthlyPrev[i]?.month || ''}`);
+    const maxBdt = Math.max(
+        ...monthlyCur.map(m => m.consumedTaka),
+        ...monthlyPrev.map(m => m.consumedTaka)
+      );
+    const maxKwh = Math.max(
+    ...monthlyCur.map(m => m.consumedUnit),
+    ...monthlyPrev.map(m => m.consumedUnit)
+    );
+    
+    const yMaxBdt = maxBdt * 1.2;
+    const yMaxKwh = maxKwh * 1.2;
+      
   
     new Chart(document.getElementById('cmpBdtCanvas'), {
       type: 'bar',
@@ -71,6 +83,12 @@ function renderComparison({ monthlyCur, monthlyPrev, chartOptions = {} }) {
             easing: 'easeOutQuart'
           }
         },
+        scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: yMaxBdt
+            }
+          },          
         plugins: {
           legend: { position: 'top' },
           tooltip: { enabled: true },
@@ -131,6 +149,12 @@ function renderComparison({ monthlyCur, monthlyPrev, chartOptions = {} }) {
             easing: 'easeOutCirc'
           }
         },
+        scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: yMaxKwh
+            }
+          },           
         plugins: {
           legend: { position: 'top' },
           tooltip: { enabled: true },

@@ -17,6 +17,9 @@ function renderDaily({ daily, chartOptions = {} }) {
   
     const totalDuration = 10000;
     const delayBetweenPoints = totalDuration / daily.length;
+    const maxBDT = Math.max(...daily.map(d => d.consumedTaka));
+    const maxKwh = Math.max(...daily.map(d => d.dailyUnit));
+
     const progressiveAnimation = {
       x: {
         type: 'number',
@@ -54,7 +57,9 @@ function renderDaily({ daily, chartOptions = {} }) {
     new Chart(ctx, {
       type: 'line',
       data: {
-        labels: daily.map(d => d.date),
+        labels: daily.map(d => new Date(d.date).toLocaleDateString('en-GB', {
+            day: '2-digit', month: 'short'
+          })),          
         datasets: [
           {
             label: 'BDT',
@@ -129,12 +134,14 @@ function renderDaily({ daily, chartOptions = {} }) {
         scales: {
           y1: {
             position: 'left',
-            title: { display: true, text: 'BDT' }
+            title: { display: true, text: 'BDT' },
+            suggestedMax: maxBDT * 1.2 
           },
           y2: {
             position: 'right',
             title: { display: true, text: 'kWh' },
-            grid: { drawOnChartArea: false }
+            grid: { drawOnChartArea: false },
+            suggestedMax: maxKwh * 1.2
           }
         },
         ...chartOptions

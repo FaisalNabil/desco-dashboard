@@ -1,39 +1,96 @@
-body {
+/* Base Layout */
+html, body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
   font-family: 'Poppins', sans-serif;
   background-color: #f8f9fa;
 }
+
+/* Container Layout */
+.container-fluid {
+  flex: 1 0 auto;
+  overflow: hidden;
+}
+
+/* Main Content Scroll */
+#mainContent {
+  overflow-y: auto;
+  max-height: calc(100vh - 56px - 60px); /* navbar height + footer height */
+}
+
+/* Footer Styling */
 footer {
-  position: fixed;
-  bottom: 10px;
-  left: 0;
-  right: 0;
+  flex-shrink: 0;
+  height: 60px;
   text-align: center;
   font-size: 0.85rem;
   color: #6c757d;
-}
-.navbar-brand img {
-  max-height: 32px;
-}
-
-.login-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  padding-top: 10px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
 }
 
-.login-container {
-  width: 350px;
-  padding: 2rem;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
-}
-
-#wrapper {
-  display: flex;
+/* Chart Wrappers */
+.chart-wrapper {
   width: 100%;
+  max-width: 900px;
+  margin: 0 auto; /* center horizontally */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 1rem;
 }
+
+.chart-wrapper canvas {
+  width: 100% !important; /* stretch */
+  height: 360px !important; /* or adjust as needed */
+}
+.card-custom {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+  .chart-wrapper canvas {
+    height: 360px !important;
+  }
+
+  .sidebar-collapse {
+    position: fixed;
+    z-index: 1050;
+    background: white;
+    height: 100%;
+    top: 0;
+    left: 0;
+    width: 250px;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar-collapse.show {
+    transform: translateX(0);
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1040;
+  }
+
+  .overlay.show {
+    display: block;
+  }
+}
+
+/* Sidebar & Nav */
 .nav-pills .nav-link {
   border-radius: 8px;
   margin-bottom: 8px;
@@ -55,6 +112,13 @@ footer {
 .nav-pills .nav-link i {
   font-size: 1.1rem;
 }
+
+.sidebar {
+  background-color: #ffffff;
+  border-right: 1px solid #dee2e6;
+}
+
+/* Cards & Content */
 .section {
   display: none;
   animation: fadeIn 0.3s ease-in-out;
@@ -62,61 +126,33 @@ footer {
 .section.active {
   display: block;
 }
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
 .card-custom {
   border-radius: 10px;
   box-shadow: 0 0 8px rgba(0,0,0,0.05);
 }
-.sidebar {
-  background-color: #ffffff;
-  border-right: 1px solid #dee2e6;
-}
-#dashboardContent {
-  display: none;
-}
-.chart-wrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 1rem;
+
+/* Login Page */
+.login-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-.chart-wrapper canvas {
-  min-width: 600px; /* Ensures enough horizontal space */
-  max-width: 100%;
-  height: auto !important;
+.login-container {
+  width: 350px;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
 }
 
-
-@media (max-width: 768px) {
-  .sidebar-collapse {
-    position: fixed;
-    z-index: 1050;
-    background: white;
-    height: 100%;
-    top: 0;
-    left: 0;
-    width: 250px;
-    overflow-y: auto;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  .sidebar-collapse.show {
-    transform: translateX(0);
-  }
-  .overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    z-index: 1040;
-  }
-  .overlay.show {
-    display: block;
-  }
+.navbar-brand img {
+  max-height: 32px;
 }

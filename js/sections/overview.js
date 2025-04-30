@@ -13,8 +13,8 @@ function renderOverview({ customer, locationData, balanceData, rechargeData, mon
     const rechargeThisYear = rechargeData.filter(r => r.rechargeDate.slice(0,4) === thisYearKey).reduce((sum, r) => sum + (r.totalAmount||0), 0);
   
     const sorted = [...monthlyCur].sort((a,b)=>a.consumedTaka-b.consumedTaka);
-    const best = sorted.length ? `${sorted[0].month} (${sorted[0].consumedTaka.toFixed(2)})` : 'N/A';
-    const worst= sorted.length ? `${sorted[sorted.length-1].month} (${sorted[sorted.length-1].consumedTaka.toFixed(2)})` : 'N/A';
+    const best = sorted.length ? `${sorted[0].month} (${sorted[0].consumedTaka.toFixed(2)} kWh)` : 'N/A';
+    const worst= sorted.length ? `${sorted[sorted.length-1].month} (${sorted[sorted.length-1].consumedTaka.toFixed(2)} kWh)` : 'N/A';
     const daysCount = daily.length;
     const avgDailyUsage = daysCount ? (daily.reduce((s,d)=>s + d.dailyUnit, 0) / daysCount).toFixed(2) : 'N/A';
   

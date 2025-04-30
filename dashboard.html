@@ -9,7 +9,81 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
+  <!-- Recharge Details Modal -->
+  <div class="modal fade" id="rechargeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">Recharge Information</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Company -->
+          <div class="text-center mb-4">
+            <h6 class="mb-0">Dhaka Electric Supply Company Ltd</h6>
+            <small class="text-muted">DESCO</small>
+          </div>
+
+          <!-- Top details -->
+          <dl class="row">
+            <dt class="col-sm-4 text-end text-muted">Date:</dt>
+            <dd class="col-sm-8 fw-bold" id="mod-date"></dd>
+
+            <dt class="col-sm-4 text-end text-muted">Order No:</dt>
+            <dd class="col-sm-8 fw-bold" id="mod-order"></dd>
+
+            <dt class="col-sm-4 text-end text-muted">Name:</dt>
+            <dd class="col-sm-8"       id="mod-name"></dd>
+
+            <dt class="col-sm-4 text-end text-muted">Meter No:</dt>
+            <dd class="col-sm-8 fw-bold" id="mod-meter"></dd>
+
+            <dt class="col-sm-4 text-end text-muted">Account No:</dt>
+            <dd class="col-sm-8 fw-bold" id="mod-account"></dd>
+
+            <dt class="col-sm-4 text-end text-muted">Status:</dt>
+            <dd class="col-sm-8"       id="mod-status"></dd>
+          </dl>
+
+          <hr/>
+
+          <!-- Charges -->
+          <dl class="row">
+            <dt class="col-sm-6 text-end text-muted">Energy Cost:</dt>
+            <dd class="col-sm-6 fw-bold" id="mod-energy"></dd>
+
+            <dt class="col-sm-6 text-end text-muted">Demand Charge-All:</dt>
+            <dd class="col-sm-6 fw-bold" id="mod-demand"></dd>
+
+            <dt class="col-sm-6 text-end text-muted">Meter Rent-1P:</dt>
+            <dd class="col-sm-6 fw-bold" id="mod-rent"></dd>
+
+            <dt class="col-sm-6 text-end text-muted">VAT (5%):</dt>
+            <dd class="col-sm-6 fw-bold" id="mod-vat"></dd>
+
+            <dt class="col-sm-6 text-end text-muted">Rebate:</dt>
+            <dd class="col-sm-6 fw-bold" id="mod-rebate"></dd>
+
+            <dt class="col-sm-6 text-end text-muted">Gross Amount:</dt>
+            <dd class="col-sm-6 fw-bold" id="mod-gross"></dd>
+
+            <dt class="col-sm-6 text-end text-muted">Token:</dt>
+            <dd class="col-sm-6 fw-bold" id="mod-token"></dd>
+          </dl>
+        </div>
+        <div class="modal-footer">
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            data-bs-dismiss="modal">
+            Close
+          </button>
+        </div>        
+      </div>
+    </div>
+  </div>
+
   <nav class="navbar navbar-light bg-white shadow-sm px-4 d-flex justify-content-between">
     <button class="btn btn-outline-secondary d-md-none" id="sidebarToggle"><i class="bi bi-list"></i></button>
     <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="#">
@@ -21,8 +95,8 @@
   </nav>
 
   <div class="overlay" id="sidebarOverlay"></div>
-  <div class="container-fluid">
-    <div class="row">
+  <div class="container-fluid flex-grow-1 overflow-hidden">
+    <div class="row h-100">
       <!-- Side Nav -->
       <div class="col-md-2 sidebar sidebar-collapse py-4 px-3 position-md-static" id="sidebar">
         <ul class="nav nav-pills flex-column" id="sectionNav">

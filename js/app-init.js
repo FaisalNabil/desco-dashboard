@@ -85,6 +85,12 @@ $(document).ready(function () {
           const monthlyCur = extract(results[3]);
           const monthlyPrev = extract(results[4]);
           const dailyRaw = extract(results[5]);
+
+          rechargeData.sort((a, b) => new Date(a.rechargeDate) - new Date(b.rechargeDate));
+          monthlyCur.sort((a, b) => a.month.localeCompare(b.month));
+          monthlyPrev.sort((a, b) => a.month.localeCompare(b.month));
+          dailyRaw.sort((a, b) => new Date(a.date) - new Date(b.date));
+
   
           if (!Array.isArray(dailyRaw) || dailyRaw.length < 2) {
             $('#loadingIndicator').hide();

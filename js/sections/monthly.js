@@ -15,6 +15,10 @@ function renderMonthly({ monthlyCur, chartOptions = {} }) {
   
     const canvas = document.getElementById('monthlyChartCanvas');
     const ctx = canvas.getContext('2d');
+    const maxBDT = Math.max(...monthlyCur.map(m => m.consumedTaka));
+    const maxKwh = Math.max(...monthlyCur.map(m => m.consumedUnit));
+    const yMax = Math.max(maxBDT, maxKwh) * 1.2; // Add 20% padding
+
   
     new Chart(ctx, {
       type: 'bar',
@@ -65,7 +69,8 @@ function renderMonthly({ monthlyCur, chartOptions = {} }) {
         },
         scales: {
           y: {
-            beginAtZero: true
+            beginAtZero: true,
+            suggestedMax: yMax
           }
         },
         plugins: {
