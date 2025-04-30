@@ -1,119 +1,200 @@
 // File: js/sections/overview.js
 function renderOverview({ customer, locationData, balanceData, rechargeData, monthlyCur, monthlyPrev, daily, usedKwhThisMonth }) {
     const now = new Date();
-    const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-    const thisYearKey  = String(now.getFullYear());
+    const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const thisYearKey = String(now.getFullYear());
+    const thisMonthName = now.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
   
     const usedThisMonthUnit = balanceData.currentMonthConsumption || 0;
     const lastMonthRecord = monthlyCur[monthlyCur.length - 1] || {};
     const maxLoadLastMonth = lastMonthRecord.maximumDemand || 0;
-    const maxLoadThisYear  = monthlyCur.map(m => m.maximumDemand || 0).reduce((mx, val) => Math.max(mx, val), 0);
+    const maxLoadThisYear = monthlyCur.map(m => m.maximumDemand || 0).reduce((mx, val) => Math.max(mx, val), 0);
   
-    const rechargeThisMonth = rechargeData.filter(r => r.rechargeDate.slice(0,7) === thisMonthKey).reduce((sum, r) => sum + (r.totalAmount||0), 0);
-    const rechargeThisYear = rechargeData.filter(r => r.rechargeDate.slice(0,4) === thisYearKey).reduce((sum, r) => sum + (r.totalAmount||0), 0);
+    const rechargeThisMonth = rechargeData.filter(r => r.rechargeDate.slice(0, 7) === thisMonthKey).reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+    const rechargeThisYear = rechargeData.filter(r => r.rechargeDate.slice(0, 4) === thisYearKey).reduce((sum, r) => sum + (r.totalAmount || 0), 0);
   
-    const sorted = [...monthlyCur].sort((a,b)=>a.consumedTaka-b.consumedTaka);
-    const best = sorted.length ? `${sorted[0].month} (${sorted[0].consumedTaka.toFixed(2)} kWh)` : 'N/A';
-    const worst= sorted.length ? `${sorted[sorted.length-1].month} (${sorted[sorted.length-1].consumedTaka.toFixed(2)} kWh)` : 'N/A';
+    const sorted = [...monthlyCur].sort((a, b) => a.consumedTaka - b.consumedTaka);
+    const best = sorted.length ? `${sorted[0].month} (${sorted[0].consumedTaka.toFixed(2)} BDT)` : 'N/A';
+    const worst = sorted.length ? `${sorted[sorted.length - 1].month} (${sorted[sorted.length - 1].consumedTaka.toFixed(2)} BDT)` : 'N/A';
     const daysCount = daily.length;
-    const avgDailyUsage = daysCount ? (daily.reduce((s,d)=>s + d.dailyUnit, 0) / daysCount).toFixed(2) : 'N/A';
+    const avgDailyUsage = daysCount ? (daily.reduce((s, d) => s + d.dailyUnit, 0) / daysCount).toFixed(2) : 'N/A';
+    const avgDailyTaka7 = daily.slice(-7).reduce((s, d) => s + d.consumedTaka, 0) / 7;
+    const estDaysLeft = avgDailyTaka7 > 0 ? Math.floor((balanceData.balance || 0) / avgDailyTaka7) : 'N/A';
+  
+    const highestDay = daily.reduce((max, d) => d.dailyUnit > max.dailyUnit ? d : max, { dailyUnit: 0 });
+    const lastRecharge = rechargeData[rechargeData.length - 1];
+    const lastRechargeDate = lastRecharge ? new Date(lastRecharge.rechargeDate) : null;
+    const daysSinceRecharge = lastRechargeDate ? Math.floor((now - lastRechargeDate) / (1000 * 60 * 60 * 24)) : 'N/A';
+  
+    const mostExpensiveMonth = monthlyCur.reduce((max, m) => m.consumedTaka > max.consumedTaka ? m : max, { consumedTaka: 0 });
+    const latestMonth = monthlyCur[monthlyCur.length - 1]?.month;
+    const latestMonthTaka = monthlyCur[monthlyCur.length - 1]?.consumedTaka;
+    const latestMonthRecharge = rechargeData.filter(r => r.rechargeDate.startsWith(latestMonth)).reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+  
+    const rechargeDates = rechargeData.map(r => new Date(r.rechargeDate)).sort((a, b) => a - b);
+    const rechargeIntervals = rechargeDates.slice(1).map((d, i) => (d - rechargeDates[i]) / (1000 * 60 * 60 * 24));
+    const rechargeFreq = rechargeIntervals.length ? (rechargeIntervals.reduce((a, b) => a + b) / rechargeIntervals.length).toFixed(1) : 'N/A';
+  
+    const avgWeek = arr => arr.reduce((sum, d) => sum + d.dailyUnit, 0) / arr.length;
+    const thisWeek = daily.slice(-7);
+    const lastWeek = daily.slice(-14, -7);
+    const spikePercent = lastWeek.length && thisWeek.length ? (((avgWeek(thisWeek) - avgWeek(lastWeek)) / avgWeek(lastWeek)) * 100).toFixed(0) : 'N/A';
+  
+    const eveningRecharges = rechargeData.filter(r => new Date(r.rechargeDate).getHours() >= 20);
+    const offPeakMsg = eveningRecharges.length >= rechargeData.length / 2 ? '🌙 Most recharges occur after 8PM. Consider scheduling early to avoid delays.' : '';
+  
+    const rechargeTotal = rechargeData.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+    const rechargeCount = rechargeData.length;
+    const rechargeAvg = rechargeCount ? Math.round(rechargeTotal / rechargeCount) : 0;
+
+    const tips = [
+        'One 100W bulb used for 10 hours = 1 kWh',
+        'Running a 1.5-ton AC for 8 hours = ~12 kWh',
+        'Ceiling fans consume 70–90W on average',
+        'Unplug chargers when not in use to save energy',
+        'LED bulbs use up to 80% less power than incandescent ones',
+        'Ironing clothes in bulk saves electricity',
+        'Your fridge uses 100–200 kWh/month on average',
+        'Charging a smartphone uses less than 0.01 kWh',
+        'Cooking with induction stoves is more energy efficient',
+        'Every 1°C lower on AC increases power usage by ~6%'
+      ];
+    const randomTip = tips[Math.floor(Math.random() * tips.length)];
   
     $('#overview').html(`
       <div class="row text-center mb-4 g-3">
-        <div class="col-md-3">
-          <div class="card card-custom h-100 p-3 d-flex flex-column justify-content-between">
-            <h6 class="mb-2">Balance</h6>
+        <div class="col-md-3 col-sm-6">
+          <div class="card card-custom h-100 p-3">
+            <h6 class="mb-2">💰 Balance</h6>
             <h4 class="text-primary mb-0">${balanceData.balance?.toFixed(2) ?? 'N/A'} BDT</h4>
           </div>
         </div>
   
-        <div class="col-md-3">
-          <div class="card card-custom h-100 p-3 d-flex flex-column justify-content-between">
-            <h6 class="mb-2">Used This Month</h6>
-            <h4 class="text-primary mb-0">${usedThisMonthUnit.toFixed(2)} BDT</h4>
-            <h5 class="text-warning mb-1">${usedKwhThisMonth} kWh</h5>
+        <div class="col-md-3 col-sm-6">
+          <div class="card card-custom h-100 p-3">
+            <h6 class="mb-2">📊 Used in ${thisMonthName}</h6>
+            <p class="mb-0 text-primary">${usedThisMonthUnit.toFixed(2)} BDT</p>
+            <p class="mb-0 text-warning">${usedKwhThisMonth} kWh</p>
           </div>
         </div>
   
-        <div class="col-md-3">
-          <div class="card card-custom h-100 p-3 d-flex flex-column justify-content-between">
-            <h6 class="mb-2">Max Load</h6>
+        <div class="col-md-3 col-sm-6">
+          <div class="card card-custom h-100 p-3">
+            <h6 class="mb-2">⚡ Max Load</h6>
             <p class="mb-1">Last: <span class="text-success">${maxLoadLastMonth.toFixed(2)} kW</span></p>
             <p class="mb-0">Year: <span class="text-success">${maxLoadThisYear.toFixed(2)} kW</span></p>
           </div>
         </div>
   
-        <div class="col-md-3">
-          <div class="card card-custom h-100 p-3 d-flex flex-column justify-content-between">
-            <h6 class="mb-2">Recharged</h6>
+        <div class="col-md-3 col-sm-6">
+          <div class="card card-custom h-100 p-3">
+            <h6 class="mb-2">🔄 Recharge</h6>
             <p class="mb-1">Month: <span class="text-primary">${rechargeThisMonth.toFixed(2)} BDT</span></p>
             <p class="mb-0">Year: <span class="text-primary">${rechargeThisYear.toFixed(2)} BDT</span></p>
           </div>
         </div>
       </div>
   
-    <div class="card card-custom mb-4 p-3">
-    <h5 class="mb-3">Consumer Information</h5>
-    
-    <div class="row">
-        <!-- Name (full width) -->
-        <div class="col-12 mb-2">
-        <strong>Name:</strong> <span>${customer.customerName}</span>
+      <div class="row text-center mb-4 g-3">
+        <div class="col-md-3 col-sm-6">
+          <div class="card card-custom h-100 p-3">
+            <h6>📆 Est. Run-Out</h6>
+            <p class="mb-0">~ ${estDaysLeft} days left</p>
+          </div>
         </div>
-
-        <!-- Address (full width) -->
-        <div class="col-12 mb-3">
-        <strong>Address:</strong> <span>${customer.installationAddress}</span>
-        </div>
-
-        <!-- Remaining details in 3 columns -->
-        ${[
-        ['Account No', customer.accountNo],
-        ['Meter No', customer.meterNo],
-        ['Tariff', customer.tariffSolution],
-        ['S & D', customer.SDName || 'N/A'],
-        ['Transformer', customer.transformer || 'N/A'],
-        ['Feeder', customer.feederName],
-        ['Inst Date', customer.installationDate],
-        ['Reg Date', customer.registerDate],
-        ['Meter Model', customer.meterModel || 'N/A'],
-        ['Phase Type', customer.phaseType],
-        ['Zone', locationData.zone || 'N/A'],
-        ['Block', locationData.block || 'N/A'],
-        ['Route', locationData.route || 'N/A'],
-        ['Sanctioned Load', customer.sanctionLoad + ' kW']
-        ]
-        .map(
-            ([label, value]) => `
-            <div class="col-md-4 mb-2">
-            <strong>${label}:</strong> <span>${value}</span>
-            </div>
-        `
-        )
-        .join('')}
-    </div>
-    </div>
-
   
-      <div class="row text-center mb-4">
-        <div class="col-md-4 mb-3">
-          <div class="card card-custom p-3">
-            <h6>Avg Daily Usage</h6>
-            <h5 class="text-primary mb-0">${avgDailyUsage} kWh</h5>
+        <div class="col-md-3 col-sm-6">
+          <div class="card card-custom h-100 p-3">
+            <h6>📈 Highest Usage</h6>
+            <p class="mb-0">${highestDay.date}: ${highestDay.dailyUnit?.toFixed(2)} kWh</p>
           </div>
         </div>
-        <div class="col-md-4 mb-3">
-          <div class="card card-custom p-3">
-            <h6>Best Month</h6>
-            <h5 class="text-success mb-0">${best}</h5>
+  
+        <div class="col-md-3 col-sm-6">
+          <div class="card card-custom h-100 p-3">
+            <h6>🕓 Last Recharge</h6>
+            <p class="mb-0">${lastRecharge ? new Date(lastRecharge.rechargeDate).toLocaleDateString() : 'N/A'}<br>${daysSinceRecharge} days ago</p>
           </div>
         </div>
-        <div class="col-md-4 mb-3">
-          <div class="card card-custom p-3">
-            <h6>Worst Month</h6>
-            <h5 class="text-danger mb-0">${worst}</h5>
+  
+        <div class="col-md-3 col-sm-6">
+          <div class="card card-custom h-100 p-3">
+            <h6>📅 Recharge Frequency</h6>
+            <p class="mb-0">Every ~${rechargeFreq} days</p>
           </div>
         </div>
       </div>
+  
+      <div class="row text-center mb-4 g-3">
+        <div class="col-md-4">
+          <div class="card card-custom p-3">
+            <h6>💸 Most Expensive</h6>
+            <p class="mb-0">${mostExpensiveMonth.month} — ${mostExpensiveMonth.consumedTaka.toFixed(2)} BDT</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card card-custom p-3">
+            <h6>⚠️ Usage Spike</h6>
+            <p class="mb-0">${spikePercent > 0 ? `+${spikePercent}% ↑` : 'No spike detected'}</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card card-custom p-3">
+            <h6>🔄 Usage vs Recharge (${latestMonth})</h6>
+            <p class="mb-0">Used: ${latestMonthTaka?.toFixed(0)} BDT / Recharged: ${latestMonthRecharge.toFixed(0)} BDT</p>
+          </div>
+        </div>
+      </div>
+  
+      <div class="text-center text-muted small mb-4">${offPeakMsg}</div>
+      <div id="energyTipBox" class="text-center text-muted small mt-3">
+        💡 Did You Know? ${randomTip}
+      </div>
+
+  
+      <div class="card card-custom mb-4 p-3">
+        <h5 class="mb-3">📋 Consumer Information</h5>
+        <div class="row">
+          <div class="col-12 mb-2">
+            <strong>👤 Name:</strong> <span>${customer.customerName}</span>
+          </div>
+          <div class="col-12 mb-3">
+            <strong>🏠 Address:</strong> <span>${customer.installationAddress}</span>
+          </div>
+          ${[
+            ['Account No', customer.accountNo],
+            ['Meter No', customer.meterNo],
+            ['Tariff', customer.tariffSolution],
+            ['S & D', customer.SDName || 'N/A'],
+            ['Transformer', customer.transformer || 'N/A'],
+            ['Feeder', customer.feederName],
+            ['Inst Date', customer.installationDate],
+            ['Reg Date', customer.registerDate],
+            ['Meter Model', customer.meterModel || 'N/A'],
+            ['Phase Type', customer.phaseType],
+            ['Zone', locationData.zone || 'N/A'],
+            ['Block', locationData.block || 'N/A'],
+            ['Route', locationData.route || 'N/A'],
+            ['Sanctioned Load', customer.sanctionLoad + ' kW']
+          ].map(([label, value]) => `<div class="col-md-4 mb-2"><strong>${label}:</strong> <span>${value}</span></div>`).join('')}
+        </div>
+      </div>
     `);
+
+    function showTip(tip) {
+        $('#energyTipBox').html(`
+          <div class="alert alert-light border d-inline-block shadow-sm" role="alert">
+            💡 <strong>Did You Know?</strong> ${tip}
+          </div>
+        `);
+      }
+      
+      // Rotate every 12s
+      setInterval(() => {
+        const nextTip = tips[Math.floor(Math.random() * tips.length)];
+        showTip(nextTip);
+      }, 12000);
+      
+
   }
+  

@@ -108,7 +108,11 @@ function renderDaily({ daily, chartOptions = {} }) {
         ]
       },
       options: {
+        maintainAspectRatio: false,
         responsive: true,
+        layout: {
+            padding: 20
+          },
         interaction: {
           intersect: false,
           mode: 'nearest',
