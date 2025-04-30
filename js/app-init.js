@@ -45,7 +45,7 @@ $(document).ready(function () {
   
         const today = new Date();
         const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 2);
+        yesterday.setDate(today.getDate() - 1);
         const fmt = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   
         const dailyTo = fmt(yesterday);
@@ -62,6 +62,12 @@ $(document).ready(function () {
   
         const prevMonthFrom = `${today.getFullYear() - 2}-${String(today.getMonth() + 1).padStart(2, '0')}`;
         const prevMonthTo = `${lastMonthEnd.getFullYear() - 1}-${String(lastMonthEnd.getMonth() + 1).padStart(2, '0')}`;
+
+        // 5) LOG TO VERIFY
+        console.log('Daily:     ', dailyFrom, '→', dailyTo);
+        console.log('Recharge:  ', rechargeFrom, '→', rechargeTo);
+        console.log('Monthly:   ', monthFrom, '→', monthTo);
+        console.log('PrevYear:  ', prevMonthFrom, '→', prevMonthTo);
   
         Promise.allSettled([
           $.get(`https://prepaid.desco.org.bd/api/common/getCustomerLocation?accountNo=${accountNo}`),

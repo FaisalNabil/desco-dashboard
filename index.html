@@ -3,20 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <title>Login | DESCO Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
 </head>
 <body class="login-body">
-  <div class="login-container">
-    <h2 class="text-center">DESCO Prepaid Portal</h2>
+  <div class="login-container text-center">
+    <div class="text-center mb-4">
+      <img src="assets/logo.png" alt="DESCO Logo" width="64" class="mb-2">
+      <h2 class="mb-0">DESCO Prepaid Portal</h2>
+      <p class="text-muted small">Unofficial consumer dashboard</p>
+    </div>    
+    
     <form id="loginForm">
-      <div class="form-group mb-3">
-        <label for="accountNo">Account No / Meter No</label>
-        <input type="text" id="accountNo" class="form-control" placeholder="Enter Account No or Meter No" required>
+      <div class="form-group mb-3 text-center">
+        <label for="accountNo" class="fw-semibold">DESCO Account / Meter No</label>
+        <input type="text" id="accountNo" class="form-control text-center" placeholder="e.g. 1234567890" required>
       </div>
       <button type="submit" class="btn btn-primary w-100">Login</button>
     </form>
   </div>
+
+  <footer>
+    <div>Made with 💡 by <a href="https://www.linkedin.com/in/tousif-md-amin-faisal/" target="_blank">Tousif Md Amin Faisal</a></div>
+    <div><small>This project is not affiliated with or endorsed by DESCO</small></div>
+  </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="js/app.js"></script>

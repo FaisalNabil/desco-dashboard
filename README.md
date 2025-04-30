@@ -33,7 +33,21 @@ An interactive and mobile-friendly dashboard for visualizing prepaid electricity
 ---
 
 ## 📁 Project Structure
-📦 desco-dashboard/ ├── index.html ├── css/ │ └── style.css ├── js/ │ ├── app-init.js │ ├── utils/export.js │ └── sections/ │ ├── overview.js │ ├── daily.js │ ├── recharge.js │ ├── monthly.js │ ├── comparison.js │ ├── rvc.js │ └── demand.js
+📦 desco-dashboard/ 
+    ├── index.html 
+    ├── css/ 
+    │   └── style.css 
+    ├── js/ 
+    │   ├── app-init.js 
+    │   ├── utils/export.js 
+    │   └── sections/ 
+    │   │     ├── overview.js 
+    │   │     ├── daily.js 
+    │   │     ├── recharge.js 
+    │   │     ├── monthly.js 
+    │   │     ├── comparison.js 
+    │   │     ├── rvc.js 
+    │   │     └── demand.js
 
 ---
 
