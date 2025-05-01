@@ -55,8 +55,33 @@ footer {
 
 /* Mobile Optimization */
 @media (max-width: 768px) {
+  html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  #mainContent {
+    max-height: none;
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  .chart-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    height: calc(100vh - 176px); /* Adjust this based on your actual layout */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 1rem;
+  }
+
   .chart-wrapper canvas {
-    max-width: 100%;
+    min-width: 600px;
+    max-width: none;
     height: auto !important;
   }
 
@@ -92,6 +117,8 @@ footer {
     display: block;
   }
 }
+
+
 
 /* Sidebar & Nav */
 .nav-pills .nav-link {
