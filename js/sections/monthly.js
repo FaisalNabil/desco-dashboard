@@ -1,5 +1,6 @@
 // File: js/sections/monthly.js
 function renderMonthly({ monthlyCur, chartOptions = {} }) {
+    const isMobile = window.innerWidth <= 768;
     const container = document.getElementById('monthly');
     container.innerHTML = '';
   
@@ -12,8 +13,7 @@ function renderMonthly({ monthlyCur, chartOptions = {} }) {
     }
   
     container.innerHTML = `
-      <div class="card card-custom mb-4 p-3">
-        <h5>Monthly Consumption</h5>
+      <div class="card card-custom mb-4 ${isMobile ? '' : 'p-3'}">
         <div class="text-end mb-2">
           <button class="btn btn-sm btn-outline-primary mb-2" onclick="exportChartToPdf('monthlyChartCanvas', 'Monthly Consumption')">
             <i class="bi bi-download"></i>
@@ -25,12 +25,33 @@ function renderMonthly({ monthlyCur, chartOptions = {} }) {
   
     const canvas = document.getElementById('monthlyChartCanvas');
     const ctx = canvas.getContext('2d');
+    if (isMobile) {
+      canvas.style.height = `${window.innerHeight * 0.6}px`;
+      canvas.style.width = '100%';
+    }
   
     const safeValue = (val) => (typeof val === 'number' && !isNaN(val) ? val : 0);
-  
     const maxBDT = Math.max(...monthlyCur.map(m => safeValue(m.consumedTaka)));
     const maxKwh = Math.max(...monthlyCur.map(m => safeValue(m.consumedUnit)));
     const yMax = Math.max(maxBDT, maxKwh) * 1.2;
+  
+    const datalabelStyle = (color, unit) => {
+      return isMobile
+        ? {
+            anchor: 'end',
+            align: 'end',
+            formatter: (val) => `${safeValue(val).toFixed(0)} ${unit}`,
+            font: { size: 10 },
+            color
+          }
+        : {
+            anchor: 'end',
+            align: 'end',
+            formatter: (val) => `${safeValue(val).toFixed(0)} ${unit}`,
+            font: { weight: 'bold' },
+            color
+          };
+    };
   
     new Chart(ctx, {
       type: 'bar',
@@ -42,42 +63,30 @@ function renderMonthly({ monthlyCur, chartOptions = {} }) {
             data: monthlyCur.map(m => safeValue(m.consumedTaka)),
             backgroundColor: 'rgba(0,123,255,0.6)',
             borderRadius: 6,
-            datalabels: {
-              anchor: 'end',
-              align: 'end',
-              formatter: (val) => safeValue(val).toFixed(0) + ' BDT',
-              font: { weight: 'bold' },
-              color: '#007bff'
-            }
+            datalabels: datalabelStyle('#007bff', 'BDT')
           },
           {
             label: 'kWh',
             data: monthlyCur.map(m => safeValue(m.consumedUnit)),
             backgroundColor: 'rgba(40,167,69,0.6)',
             borderRadius: 6,
-            datalabels: {
-              anchor: 'end',
-              align: 'end',
-              formatter: (val) => safeValue(val).toFixed(0) + ' kWh',
-              font: { weight: 'bold' },
-              color: '#28a745'
-            }
+            datalabels: datalabelStyle('#28a745', 'kWh')
           }
         ]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         animations: {
           tension: {
             duration: 1000,
-            easing: 'easeOutBounce',
             from: 1,
             to: 0,
-            loop: true,
+            loop: true
           },
           y: {
-            easing: 'easeInOutElastic',
-          },
+            easing: 'easeInOutElastic'
+          }
         },
         scales: {
           y: {
@@ -86,6 +95,13 @@ function renderMonthly({ monthlyCur, chartOptions = {} }) {
           }
         },
         plugins: {
+          title: {
+            display: true,
+            text: 'Monthly Consumption',
+            align: 'center',
+            font: { size: 16, weight: 'bold' },
+            padding: { top: 10, bottom: 10 }
+          },
           legend: { position: 'top' },
           tooltip: { enabled: true },
           datalabels: {

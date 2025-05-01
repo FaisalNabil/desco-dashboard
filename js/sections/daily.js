@@ -1,13 +1,13 @@
-// File: js/sections/daily.js
 function renderDaily({ daily, chartOptions = {} }) {
+    const isMobile = window.innerWidth <= 768;
+  
     document.getElementById('daily').innerHTML = `
-      <div class="card card-custom mb-4 p-3">
+      <div class="card card-custom mb-4 ${isMobile ? '' : 'p-3'}">
         <div class="text-end mb-2">
             <button class="btn btn-sm btn-outline-primary mb-2" onclick="exportChartToPdf('dailyChartCanvas', 'Daily Consumption')">
             <i class="bi bi-download"></i>
             </button>
         </div>
-        <h5>Daily Consumption</h5>
         <div class="chart-wrapper"><canvas id="dailyChartCanvas"></canvas></div>
       </div>
     `;
@@ -19,7 +19,32 @@ function renderDaily({ daily, chartOptions = {} }) {
     const delayBetweenPoints = totalDuration / daily.length;
     const maxBDT = Math.max(...daily.map(d => d.consumedTaka));
     const maxKwh = Math.max(...daily.map(d => d.dailyUnit));
-
+  
+    const datalabelStyle = (color, unit) => {
+      return isMobile
+        ? {
+            align: 'top',
+            anchor: 'center',
+            formatter: (value, ctx) =>
+              ctx.chart.data.datasets.length === 1 ? value : '',
+            color,
+            font: { weight: 'normal', size: 10 },
+            padding: 2
+          }
+        : {
+            align: 'end',
+            anchor: 'end',
+            formatter: (value) => `${value.toFixed(2)} ${unit}`,
+            backgroundColor: 'white',
+            borderColor: color,
+            borderRadius: 4,
+            borderWidth: 1,
+            padding: 4,
+            color,
+            font: { weight: 'bold' }
+          };
+    };
+  
     const progressiveAnimation = {
       x: {
         type: 'number',
@@ -27,9 +52,7 @@ function renderDaily({ daily, chartOptions = {} }) {
         duration: delayBetweenPoints,
         from: NaN,
         delay(context) {
-          if (context.type !== 'data' || context.xStarted) {
-            return 0;
-          }
+          if (context.type !== 'data' || context.xStarted) return 0;
           context.xStarted = true;
           return context.index * delayBetweenPoints;
         }
@@ -38,16 +61,16 @@ function renderDaily({ daily, chartOptions = {} }) {
         type: 'number',
         easing: 'linear',
         duration: delayBetweenPoints,
-        from: context => {
+        from: (context) => {
           const chart = context.chart;
           const meta = chart.getDatasetMeta(context.datasetIndex);
           const previous = meta.data[context.index - 1];
-          return previous ? previous.y : chart.scales[meta.yAxisID || 'y'].getPixelForValue(100);
+          return previous
+            ? previous.y
+            : chart.scales[meta.yAxisID || 'y'].getPixelForValue(100);
         },
         delay(context) {
-          if (context.type !== 'data' || context.yStarted) {
-            return 0;
-          }
+          if (context.type !== 'data' || context.yStarted) return 0;
           context.yStarted = true;
           return context.index * delayBetweenPoints;
         }
@@ -57,9 +80,12 @@ function renderDaily({ daily, chartOptions = {} }) {
     new Chart(ctx, {
       type: 'line',
       data: {
-        labels: daily.map(d => new Date(d.date).toLocaleDateString('en-GB', {
-            day: '2-digit', month: 'short'
-          })),          
+        labels: daily.map(d =>
+          new Date(d.date).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short'
+          })
+        ),
         datasets: [
           {
             label: 'BDT',
@@ -70,18 +96,7 @@ function renderDaily({ daily, chartOptions = {} }) {
             tension: 0.3,
             borderWidth: 1,
             radius: 0,
-            datalabels: {
-              align: 'end',
-              anchor: 'end',
-              formatter: (value) => `${value.toFixed(2)} BDT`,
-              backgroundColor: 'white',
-              borderColor: '#007bff',
-              borderRadius: 4,
-              borderWidth: 1,
-              padding: 4,
-              color: '#007bff',
-              font: { weight: 'bold' }
-            }
+            datalabels: datalabelStyle('#007bff', 'BDT')
           },
           {
             label: 'kWh',
@@ -92,18 +107,7 @@ function renderDaily({ daily, chartOptions = {} }) {
             tension: 0.3,
             borderWidth: 1,
             radius: 0,
-            datalabels: {
-              align: 'start',
-              anchor: 'start',
-              formatter: (value) => `${value.toFixed(0)} kWh`,
-              backgroundColor: 'white',
-              borderColor: '#28a745',
-              borderRadius: 4,
-              borderWidth: 1,
-              padding: 4,
-              color: '#28a745',
-              font: { weight: 'bold' }
-            }
+            datalabels: datalabelStyle('#28a745', 'kWh')
           }
         ]
       },
@@ -111,17 +115,29 @@ function renderDaily({ daily, chartOptions = {} }) {
         maintainAspectRatio: false,
         responsive: true,
         layout: {
-            padding: 20
-          },
+          padding: isMobile ? 0 : 20
+        },
         interaction: {
           intersect: false,
           mode: 'nearest',
           axis: 'x'
         },
         plugins: {
-          tooltip: {
-            enabled: true
-          },
+            title: {
+                display: true,
+                text: 'Daily Consumption',
+                align: 'center',
+                font: {
+                    size: 16,
+                    weight: 'bold'
+                },
+                color: '#343a40', // optional styling
+                padding: {
+                    top: 10,
+                    bottom: 10
+                }
+                },
+                tooltip: { enabled: true },
           datalabels: {
             display: true,
             clip: false
@@ -139,7 +155,7 @@ function renderDaily({ daily, chartOptions = {} }) {
           y1: {
             position: 'left',
             title: { display: true, text: 'BDT' },
-            suggestedMax: maxBDT * 1.2 
+            suggestedMax: maxBDT * 1.2
           },
           y2: {
             position: 'right',
