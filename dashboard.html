@@ -97,15 +97,27 @@
     </div>
   </div>
 
-  <nav class="navbar navbar-light bg-white shadow-sm px-4 d-flex justify-content-between">
-    <button class="btn btn-outline-secondary d-md-none" id="sidebarToggle"><i class="bi bi-list"></i></button>
-    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="#">
-      <img src="assets/logo.png" alt="DESCO Logo" width="32">
-      DESCO Prepaid Portal
-    </a>
-    
-    <button id="logoutBtn" class="btn btn-outline-danger btn-sm">Logout</button>
+  <nav class="navbar navbar-light bg-white shadow-sm px-3 py-2 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-outline-secondary d-md-none me-2" id="sidebarToggle">
+        <i class="bi bi-list"></i>
+      </button>
+  
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2 m-0" href="#">
+        <img src="assets/logo.png" alt="DESCO Logo" width="32">
+        <span class="d-none d-sm-inline">DESCO Prepaid Portal</span>
+      </a>
+  
+      <a href="https://github.com/FaisalNabil/desco-dashboard.git" target="_blank" class="text-muted ms-2" title="View on GitHub">
+        <i class="bi bi-github" style="font-size: 1.2rem;"></i>
+      </a>
+    </div>
+  
+    <button id="logoutBtn" class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center" title="Logout">
+      <i class="bi bi-box-arrow-right"></i>
+    </button>
   </nav>
+  
 
   <div class="overlay" id="sidebarOverlay"></div>
   <div class="container-fluid flex-grow-1 overflow-hidden">
