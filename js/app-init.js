@@ -9,32 +9,25 @@ $(document).ready(function () {
   $('#loginForm').submit(function (e) {
     e.preventDefault();
     const input = $('#accountNo').val().trim();
-    if (!input) return alert('Please enter your Account No or Meter No');
-
-    // Try tkdes first
-    $.get(`${baseUrl}tkdes/customer/getCustomerInfo?accountNo=${input}`)
-      .done(res => {
-        if (res.code === 200 && res.data) {
-          apiPrefix = 'tkdes';
-          finishLogin(res.data);
-        } else if (res.code === 16006 || (res.code === 200 && res.data === null)) {
-          // fallback to unified
-          $.get(`${baseUrl}unified/customer/getCustomerInfo?accountNo=${input}`)
-            .done(res2 => {
-              if (res2.code === 200 && res2.data) {
-                apiPrefix = 'unified';
-                finishLogin(res2.data);
-              } else {
-                alert('Account not found.');
-              }
-            })
-            .fail(() => alert('API error. Please try again.'));
-        } else {
-          alert('Account not found.');
-        }
-      })
-      .fail(() => alert('API error. Please try again.'));
+  
+    if (!input || !/^\d+$/.test(input)) {
+      return alert('Please enter a valid Account No or Meter No');
+    }
+  
+    const isAccountNo = input.length === 8;
+    const isMeterNo = input.length === 12;
+  
+    if (!isAccountNo && !isMeterNo) {
+      return alert('Account No must be 8 digits or Meter No must be 12 digits');
+    }
+  
+    const query = isAccountNo
+      ? `accountNo=${input}&meterNo=`
+      : `accountNo=&meterNo=${input}`;
+  
+    tryUnifiedLogin(query);
   });
+  
 
   $('#logoutBtn').click(function () {
     localStorage.removeItem('accountNo');
@@ -55,6 +48,31 @@ $(document).ready(function () {
     renderRecentAccounts();
   }
 });
+
+function tryUnifiedLogin(query) {
+    // Try tkdes first
+    $.get(`${baseUrl}tkdes/customer/getCustomerInfo?${query}`)
+      .done(res => {
+        if (res.code === 200 && res.data) {
+          apiPrefix = 'tkdes';
+          finishLogin(res.data);
+        } else {
+          // Try unified fallback
+          $.get(`${baseUrl}unified/customer/getCustomerInfo?${query}`)
+            .done(res2 => {
+              if (res2.code === 200 && res2.data) {
+                apiPrefix = 'unified';
+                finishLogin(res2.data);
+              } else {
+                alert('Account or Meter Number not found.');
+              }
+            })
+            .fail(() => alert('API error. Please try again.'));
+        }
+      })
+      .fail(() => alert('API error. Please try again.'));
+  }
+  
 
 function finishLogin(data) {
   saveRecentAccount(data.accountNo, data.customerName);
@@ -146,6 +164,10 @@ function loadInitialData(accountNo) {
         const monthlyPrev = extract(results[4]);
         const dailyRaw = extract(results[5]);
 
+        if (balanceData?.balance < 500) {
+            showLowBalanceWarning(balanceData.balance);
+          }
+          
         rechargeData.sort((a, b) => new Date(a.rechargeDate) - new Date(b.rechargeDate));
         monthlyCur.sort((a, b) => a.month.localeCompare(b.month));
         monthlyPrev.sort((a, b) => a.month.localeCompare(b.month));
@@ -199,4 +221,29 @@ function loadInitialData(accountNo) {
       $('#loadingIndicator').hide();
       $('#dashboardContent').html(`<p class="text-danger text-center">Failed to connect to DESCO API.</p>`).show();
     });
+}
+function showLowBalanceWarning(balance) {
+  const modalHtml = `
+    <div class="modal fade" id="lowBalanceModal" tabindex="-1" aria-labelledby="lowBalanceModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-warning">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title" id="lowBalanceModalLabel">⚠️ Low Balance Alert</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center">
+            <p>Your current balance is <strong>${balance.toFixed(2)} BDT</strong>.</p>
+            <p>Please recharge soon to avoid disconnection.</p>
+          </div>
+          <div class="modal-footer justify-content-center">
+            <button type="button" class="btn btn-outline-warning" data-bs-dismiss="modal">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  $('body').append(modalHtml);
+  const modal = new bootstrap.Modal(document.getElementById('lowBalanceModal'));
+  modal.show();
 }

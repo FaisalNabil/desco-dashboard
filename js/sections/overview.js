@@ -1,4 +1,21 @@
 // File: js/sections/overview.js
+function formatDate(dateStr, withDay = false) {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-GB', {
+      day: withDay ? '2-digit' : undefined,
+      month: 'short',
+      year: 'numeric'
+    }).replace(',', '');
+  }
+  
+  function getValueColorClass(value, scale = 1000) {
+    const ratio = Math.min(value / scale, 1);
+    if (ratio > 0.8) return 'text-danger';
+    if (ratio > 0.5) return 'text-warning';
+    if (ratio > 0.2) return 'text-success';
+    return 'text-muted';
+  }
+  
 function renderOverview({ customer, locationData, balanceData, rechargeData, monthlyCur, monthlyPrev, daily, usedKwhThisMonth }) {
     const now = new Date();
     const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -68,31 +85,31 @@ function renderOverview({ customer, locationData, balanceData, rechargeData, mon
         <div class="col-md-3 col-sm-6">
           <div class="card card-custom h-100 p-3">
             <h6 class="mb-2">💰 Balance</h6>
-            <h4 class="text-primary mb-0">${balanceData?.balance?.toFixed(2) ?? 'N/A'} BDT</h4>
+            <h4 class="${getValueColorClass(balanceData?.balance, 500)} mb-0">${balanceData?.balance?.toFixed(2) ?? 'N/A'} BDT</h4>
           </div>
         </div>
   
         <div class="col-md-3 col-sm-6">
           <div class="card card-custom h-100 p-3">
             <h6 class="mb-2">📊 Used in ${thisMonthName}</h6>
-            <p class="mb-0 text-primary">${usedThisMonthUnit.toFixed(2)} BDT</p>
-            <p class="mb-0 text-warning">${usedKwhThisMonth} kWh</p>
+            <p class="mb-0 ${getValueColorClass(usedThisMonthUnit, 500)}">${usedThisMonthUnit.toFixed(2)} BDT</p>
+            <p class="mb-0 ${getValueColorClass(usedKwhThisMonth, 100)}">${usedKwhThisMonth} kWh</p>
           </div>
         </div>
   
         <div class="col-md-3 col-sm-6">
           <div class="card card-custom h-100 p-3">
             <h6 class="mb-2">⚡ Max Load</h6>
-            <p class="mb-1">Last: <span class="text-success">${maxLoadLastMonth.toFixed(2)} kW</span></p>
-            <p class="mb-0">Year: <span class="text-success">${maxLoadThisYear.toFixed(2)} kW</span></p>
+            <p class="mb-1">Last: <span class="${getValueColorClass(maxLoadLastMonth, 10)}">${maxLoadLastMonth.toFixed(2)} kW</span></p>
+            <p class="mb-0">Year: <span class="${getValueColorClass(maxLoadThisYear, 10)}">${maxLoadThisYear.toFixed(2)} kW</span></p>
           </div>
         </div>
   
         <div class="col-md-3 col-sm-6">
           <div class="card card-custom h-100 p-3">
             <h6 class="mb-2">🔄 Recharge</h6>
-            <p class="mb-1">Month: <span class="text-primary">${rechargeThisMonth.toFixed(2)} BDT</span></p>
-            <p class="mb-0">Year: <span class="text-primary">${rechargeThisYear.toFixed(2)} BDT</span></p>
+            <p class="mb-1">Month: <span class="${getValueColorClass(rechargeThisMonth, 500)}">${rechargeThisMonth.toFixed(2)} BDT</span></p>
+            <p class="mb-0">Year: <span class="${getValueColorClass(rechargeThisYear, 500)}">${rechargeThisYear.toFixed(2)} BDT</span></p>
           </div>
         </div>
       </div>
@@ -101,21 +118,21 @@ function renderOverview({ customer, locationData, balanceData, rechargeData, mon
         <div class="col-md-3 col-sm-6">
           <div class="card card-custom h-100 p-3">
             <h6>📆 Est. Run-Out</h6>
-            <p class="mb-0">~ ${estDaysLeft} days left</p>
+            <p class="mb-0">~ <span class="${getValueColorClass(estDaysLeft, 5)}">${estDaysLeft}</span> days left</p>
           </div>
         </div>
   
         <div class="col-md-3 col-sm-6">
           <div class="card card-custom h-100 p-3">
             <h6>📈 Highest Usage</h6>
-            <p class="mb-0">${highestDay.date}: ${highestDay.dailyUnit?.toFixed(2)} kWh</p>
+            <p class="mb-0">${formatDate(highestDay.date, true)}: <span class="${getValueColorClass(highestDay.dailyUnit, 10)}">${highestDay.dailyUnit?.toFixed(2)}</span> kWh</p>
           </div>
         </div>
   
         <div class="col-md-3 col-sm-6">
           <div class="card card-custom h-100 p-3">
             <h6>🕓 Last Recharge</h6>
-            <p class="mb-0">${lastRecharge ? new Date(lastRecharge.rechargeDate).toLocaleDateString() : 'N/A'}<br>${daysSinceRecharge} days ago</p>
+            <p class="mb-0">${lastRecharge ? formatDate(lastRecharge.rechargeDate, true) : 'N/A'}<br>${daysSinceRecharge} days ago</p>
           </div>
         </div>
   
@@ -130,19 +147,19 @@ function renderOverview({ customer, locationData, balanceData, rechargeData, mon
       <div class="row text-center mb-4 g-3">
         <div class="col-md-4">
           <div class="card card-custom p-3">
-            <h6>💸 Most Expensive</h6>
-            <p class="mb-0">${mostExpensiveMonth.month} — ${mostExpensiveMonth.consumedTaka.toFixed(2)} BDT</p>
+            <h6>💸 Most Expensive Month</h6>
+            <p class="mb-0">${formatDate(mostExpensiveMonth.month, false)} — <span class="${getValueColorClass(mostExpensiveMonth.consumedTaka, 1500)}">${mostExpensiveMonth.consumedTaka.toFixed(2)}</span> BDT</p>
           </div>
         </div>
         <div class="col-md-4">
           <div class="card card-custom p-3">
             <h6>⚠️ Usage Spike</h6>
-            <p class="mb-0">${spikePercent > 0 ? `+${spikePercent}% ↑` : 'No spike detected'}</p>
+            <p class="mb-0"><span class="${getValueColorClass(spikePercent, 0)}">${spikePercent > 0 ? `+${spikePercent}% ↑` : 'No spike detected'}</span></p>
           </div>
         </div>
         <div class="col-md-4">
           <div class="card card-custom p-3">
-            <h6>🔄 Usage vs Recharge (${latestMonth})</h6>
+            <h6>🔄 Usage vs Recharge (${formatDate(latestMonth, false)})</h6>
             <p class="mb-0">Used: ${latestMonthTaka?.toFixed(0)} BDT / Recharged: ${latestMonthRecharge.toFixed(0)} BDT</p>
           </div>
         </div>
