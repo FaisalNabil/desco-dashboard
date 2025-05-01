@@ -5,12 +5,14 @@ function renderOverview({ customer, locationData, balanceData, rechargeData, mon
     const thisYearKey = String(now.getFullYear());
     const thisMonthName = now.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
   
-    const usedThisMonthUnit = balanceData.currentMonthConsumption || 0;
+    const usedThisMonthUnit = balanceData?.currentMonthConsumption ?? 0;
     const lastMonthRecord = monthlyCur[monthlyCur.length - 1] || {};
-    const maxLoadLastMonth = lastMonthRecord.maximumDemand || 0;
-    const maxLoadThisYear = monthlyCur.map(m => m.maximumDemand || 0).reduce((mx, val) => Math.max(mx, val), 0);
-  
-    const rechargeThisMonth = rechargeData.filter(r => r.rechargeDate.slice(0, 7) === thisMonthKey).reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+    const maxLoadLastMonth = lastMonthRecord?.maximumDemand ?? 0;
+    const maxLoadThisYear = monthlyCur.map(m => m.maximumDemand ?? 0).reduce((mx, val) => Math.max(mx, val), 0);
+
+    const rechargeThisMonth = rechargeData
+    .filter(r => r.rechargeDate?.slice(0, 7) === thisMonthKey)
+    .reduce((sum, r) => sum + (r.totalAmount ?? 0), 0);
     const rechargeThisYear = rechargeData.filter(r => r.rechargeDate.slice(0, 4) === thisYearKey).reduce((sum, r) => sum + (r.totalAmount || 0), 0);
   
     const sorted = [...monthlyCur].sort((a, b) => a.consumedTaka - b.consumedTaka);
@@ -19,7 +21,7 @@ function renderOverview({ customer, locationData, balanceData, rechargeData, mon
     const daysCount = daily.length;
     const avgDailyUsage = daysCount ? (daily.reduce((s, d) => s + d.dailyUnit, 0) / daysCount).toFixed(2) : 'N/A';
     const avgDailyTaka7 = daily.slice(-7).reduce((s, d) => s + d.consumedTaka, 0) / 7;
-    const estDaysLeft = avgDailyTaka7 > 0 ? Math.floor((balanceData.balance || 0) / avgDailyTaka7) : 'N/A';
+    const estDaysLeft = avgDailyTaka7 > 0 ? Math.floor((balanceData?.balance || 0) / avgDailyTaka7) : 'N/A';
   
     const highestDay = daily.reduce((max, d) => d.dailyUnit > max.dailyUnit ? d : max, { dailyUnit: 0 });
     const lastRecharge = rechargeData[rechargeData.length - 1];
@@ -66,7 +68,7 @@ function renderOverview({ customer, locationData, balanceData, rechargeData, mon
         <div class="col-md-3 col-sm-6">
           <div class="card card-custom h-100 p-3">
             <h6 class="mb-2">💰 Balance</h6>
-            <h4 class="text-primary mb-0">${balanceData.balance?.toFixed(2) ?? 'N/A'} BDT</h4>
+            <h4 class="text-primary mb-0">${balanceData?.balance?.toFixed(2) ?? 'N/A'} BDT</h4>
           </div>
         </div>
   

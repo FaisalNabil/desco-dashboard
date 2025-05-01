@@ -1,5 +1,6 @@
 // File: js/app-init.js
 
+let baseUrl = 'https://prepaid.desco.org.bd/api/';
 let apiPrefix = 'tkdes';
 
 $(document).ready(function () {
@@ -11,21 +12,16 @@ $(document).ready(function () {
     if (!input) return alert('Please enter your Account No or Meter No');
 
     // Try tkdes first
-    $.get(`https://prepaid.desco.org.bd/api/tkdes/customer/getCustomerInfo?accountNo=${input}`)
+    $.get(`${baseUrl}tkdes/customer/getCustomerInfo?accountNo=${input}`)
       .done(res => {
-        console.log('res:');console.log(res);
         if (res.code === 200 && res.data) {
-            console.log('Here');
           apiPrefix = 'tkdes';
           finishLogin(res.data);
-        } else if (res.code === 16006) {
+        } else if (res.code === 16006 || (res.code === 200 && res.data === null)) {
           // fallback to unified
-          $.get(`https://prepaid.desco.org.bd/api/unified/customer/getCustomerInfo?accountNo=${input}`)
+          $.get(`${baseUrl}unified/customer/getCustomerInfo?accountNo=${input}`)
             .done(res2 => {
-                console.log('res2:');
-                console.log(res2);
               if (res2.code === 200 && res2.data) {
-                console.log('Here uni');
                 apiPrefix = 'unified';
                 finishLogin(res2.data);
               } else {
@@ -100,9 +96,9 @@ function loadInitialData(accountNo) {
   $('#loadingIndicator').show();
   $('#dashboardContent').hide();
 
-  $.get(`https://prepaid.desco.org.bd/api/${apiPrefix}/customer/getCustomerInfo?accountNo=${accountNo}`)
+  $.get(`${baseUrl}${apiPrefix}/customer/getCustomerInfo?accountNo=${accountNo}`)
     .done(res => {
-      if (res.code !== 200) {
+      if (res.code !== 200 || !res.data) {
         $('#loadingIndicator').hide();
         return $('#dashboardContent').html(`<p class="text-danger text-center">Account not found.</p>`).show();
       }
@@ -131,14 +127,17 @@ function loadInitialData(accountNo) {
       const prevMonthTo = `${lastMonthEnd.getFullYear() - 1}-${String(lastMonthEnd.getMonth() + 1).padStart(2, '0')}`;
 
       Promise.allSettled([
-        $.get(`https://prepaid.desco.org.bd/api/common/getCustomerLocation?accountNo=${accountNo}`),
-        $.get(`https://prepaid.desco.org.bd/api/${apiPrefix}/customer/getBalance?accountNo=${accountNo}&meterNo=${meterNo}`),
-        $.get(`https://prepaid.desco.org.bd/api/${apiPrefix}/customer/getRechargeHistory?accountNo=${accountNo}&meterNo=${meterNo}&dateFrom=${rechargeFrom}&dateTo=${rechargeTo}`),
-        $.get(`https://prepaid.desco.org.bd/api/${apiPrefix}/customer/getCustomerMonthlyConsumption?accountNo=${accountNo}&meterNo=${meterNo}&monthFrom=${monthFrom}&monthTo=${monthTo}`),
-        $.get(`https://prepaid.desco.org.bd/api/${apiPrefix}/customer/getCustomerMonthlyConsumption?accountNo=${accountNo}&meterNo=${meterNo}&monthFrom=${prevMonthFrom}&monthTo=${prevMonthTo}`),
-        $.get(`https://prepaid.desco.org.bd/api/${apiPrefix}/customer/getCustomerDailyConsumption?accountNo=${accountNo}&meterNo=${meterNo}&dateFrom=${dailyFrom}&dateTo=${dailyTo}`)
+        $.get(`${baseUrl}common/getCustomerLocation?accountNo=${accountNo}`),
+        $.get(`${baseUrl}${apiPrefix}/customer/getBalance?accountNo=${accountNo}&meterNo=${meterNo}`),
+        $.get(`${baseUrl}${apiPrefix}/customer/getRechargeHistory?accountNo=${accountNo}&meterNo=${meterNo}&dateFrom=${rechargeFrom}&dateTo=${rechargeTo}`),
+        $.get(`${baseUrl}${apiPrefix}/customer/getCustomerMonthlyConsumption?accountNo=${accountNo}&meterNo=${meterNo}&monthFrom=${monthFrom}&monthTo=${monthTo}`),
+        $.get(`${baseUrl}${apiPrefix}/customer/getCustomerMonthlyConsumption?accountNo=${accountNo}&meterNo=${meterNo}&monthFrom=${prevMonthFrom}&monthTo=${prevMonthTo}`),
+        $.get(`${baseUrl}${apiPrefix}/customer/getCustomerDailyConsumption?accountNo=${accountNo}&meterNo=${meterNo}&dateFrom=${dailyFrom}&dateTo=${dailyTo}`)
       ]).then(results => {
-        const extract = (r, isArray = true) => (r.status === 'fulfilled' && r.value?.code === 200) ? r.value.data : (isArray ? [] : {});
+        const extract = (r, isArray = true) => 
+            (r.status === 'fulfilled' && r.value?.code === 200) 
+                ? r.value.data 
+                : (isArray ? [] : {});
 
         const locationData = extract(results[0], false);
         const balanceData = extract(results[1], false);
@@ -152,19 +151,23 @@ function loadInitialData(accountNo) {
         monthlyPrev.sort((a, b) => a.month.localeCompare(b.month));
         dailyRaw.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        if (!Array.isArray(dailyRaw) || dailyRaw.length < 2) {
-          $('#loadingIndicator').hide();
-          return $('#dashboardContent').html(`<p class="text-warning text-center">Not enough daily data to display chart.</p>`).show();
+        let daily = [];
+        if (Array.isArray(dailyRaw) && dailyRaw.length >= 2) {
+          daily = dailyRaw.slice(1).map((d, i) => {
+            const prev = dailyRaw[i];
+            let takaDelta = d.consumedTaka - (prev?.consumedTaka || 0);
+            let unitDelta = d.consumedUnit - (prev?.consumedUnit || 0);
+            if (takaDelta < 0) takaDelta = -0.01;
+            if (unitDelta < 0) unitDelta = -0.01;
+            return { date: d.date, consumedTaka: takaDelta, dailyUnit: unitDelta };
+          });
+        } else {
+          $('#daily').html(`<div class="alert alert-warning text-center">No recent daily data available.</div>`);
         }
 
-        const daily = dailyRaw.slice(1).map((d, i) => {
-          const prev = dailyRaw[i];
-          let takaDelta = d.consumedTaka - (prev?.consumedTaka || 0);
-          let unitDelta = d.consumedUnit - (prev?.consumedUnit || 0);
-          if (takaDelta < 0) takaDelta = -0.01;
-          if (unitDelta < 0) unitDelta = -0.01;
-          return { date: d.date, consumedTaka: takaDelta, dailyUnit: unitDelta };
-        });
+        if (!Array.isArray(monthlyCur) || monthlyCur.length === 0) {
+          $('#monthly').html(`<div class="alert alert-warning text-center">Monthly consumption data is unavailable at this moment.</div>`);
+        }
 
         const currentMonth = new Date().toISOString().slice(0, 7);
         const thisMonthDaily = daily.filter(d => d.date.startsWith(currentMonth));

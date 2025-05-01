@@ -56,8 +56,8 @@ footer {
 /* Mobile Optimization */
 @media (max-width: 768px) {
   .chart-wrapper canvas {
-    height: 300px;
-    max-width: 100% !important;
+    max-width: 100%;
+    height: auto !important;
   }
 
   .sidebar-collapse {
