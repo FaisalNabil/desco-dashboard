@@ -56,33 +56,57 @@ footer {
 /* Mobile Optimization */
 @media (max-width: 768px) {
   html, body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
+    display: block;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
   }
 
   #mainContent {
-    max-height: none;
-    height: 100%;
+    flex-grow: 1;
     overflow-y: auto;
   }
 
-  .chart-wrapper {
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    height: calc(100vh - 176px); /* Adjust this based on your actual layout */
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 1rem;
+  footer {
+    flex-shrink: 0;
   }
 
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  h5 {
+    font-size: 1rem;
+  }
+
+  .nav-link {
+    font-size: 0.95rem;
+    padding: 0.5rem;
+  }
+  
+  .chart-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    height: 320px;
+    width: 100%;
+    padding-bottom: 1rem;
+  }
+  
   .chart-wrapper canvas {
-    min-width: 600px;
-    max-width: none;
+    width: 100% !important;
     height: auto !important;
+    max-width: 100%;
+  }  
+  .container-fluid {
+    padding: 0 10px;
+  }
+
+  .card-custom {
+    padding: 1rem;
+    margin: 10px 0;
   }
 
   .sidebar-collapse {
